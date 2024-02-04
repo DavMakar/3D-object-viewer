@@ -7,13 +7,15 @@ SOURCES += \
     MainWindow.cpp \
     Scene.cpp \
     UIController.cpp \
-    Cube.cpp
+    Cube.cpp \
+    CubeModel.cpp
 
 HEADERS += \
     MainWindow.hpp \
     Scene.hpp \
     UIController.hpp \
-    Cube.hpp
+    Cube.hpp \
+    CubeModel.hpp
 
 RESOURCES += \
     shaders.qrc

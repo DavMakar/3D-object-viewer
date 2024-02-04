@@ -7,7 +7,7 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
 
-#include "Cube.hpp"
+#include "CubeModel.hpp"
 
 class Scene : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -19,6 +19,7 @@ public:
 
 public slots:
     void onAddCubeRequest(float posX,float posY,float posZ,const QVector3D &color);
+    CubeModel& getModel();
 
 protected:
     void initializeGL() override;
@@ -28,7 +29,7 @@ protected:
 private:
     void initializeCube();
     void initializeShaders();
-    QVector<Cube> cubes;
+    CubeModel cubes;
     QOpenGLBuffer vertexBuffer;
     QOpenGLVertexArrayObject vertexArrayObject;
     QOpenGLShaderProgram program;

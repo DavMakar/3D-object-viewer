@@ -8,16 +8,21 @@ Scene::Scene(QWidget *parent)
     : QOpenGLWidget(parent)
     , vertexBuffer(QOpenGLBuffer::VertexBuffer)
 {
-    cubes.push_back({0.0f,0.0f,0.0f});
-    cubes.push_back({2.0f,5.0f,-15.0f});
-    cubes.push_back({-1.5f,-2.2f,-2.5f});
-    cubes.push_back({-3.8f,-2.0f,-12.3f});
-    cubes.push_back({2.4f,-0.4f,-3.5f});
+    cubes.addCube({0.0f,0.0f,0.0f});
+    cubes.addCube({2.0f,5.0f,-15.0f});
+    cubes.addCube({-1.5f,-2.2f,-2.5f});
+    cubes.addCube({-3.8f,-2.0f,-12.3f});
+    cubes.addCube({2.4f,-0.4f,-3.5f});
 }
 
 Scene::~Scene()
 {
     vertexArrayObject.destroy();
+}
+
+CubeModel &Scene::getModel()
+{
+    return cubes;
 }
 
 void Scene::initializeGL()
@@ -55,14 +60,12 @@ void Scene::paintGL()
    
     QOpenGLVertexArrayObject::Binder vaoBinder(&vertexArrayObject);
 
-    int i = 0;
-    for (const auto &cube : cubes) {
+    for (int i = 0 ; i < cubes.rowCount(); ++i) {
         QMatrix4x4 model;
-        model.translate(cube.getPosition());
+        model.translate(cubes.cubeAt(i).getPosition());
 
         const float angle = 20.0f * i + (time.second() * 1000 + time.msec()) / 25 % 360;
         model.rotate(angle, {0.5, 1.0, 0.0});
-        ++i;
 
         program.setUniformValue("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -142,5 +145,5 @@ void Scene::initializeShaders()
 }
 
 void Scene::onAddCubeRequest(float posX,float posY,float posZ,const QVector3D &color){
-    cubes.push_back(Cube(posX,posY,posZ));
+    cubes.addCube({posX,posY,posZ});
 }

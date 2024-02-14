@@ -8,11 +8,11 @@ Scene::Scene(QWidget *parent)
     : QOpenGLWidget(parent)
     , vertexBuffer(QOpenGLBuffer::VertexBuffer)
 {
-    cubes.addCube({0.0f,0.0f,0.0f});
-    cubes.addCube({2.0f,5.0f,-15.0f});
-    cubes.addCube({-1.5f,-2.2f,-2.5f});
-    cubes.addCube({-3.8f,-2.0f,-12.3f});
-    cubes.addCube({2.4f,-0.4f,-3.5f});
+    cubes.addCube({0.0f,0.0f,0.0f,{1.0f, 0.0f, 0.0f}});
+    cubes.addCube({2.0f,5.0f,-15.0f,{0.0f, 1.0f, 0.0f}});
+    cubes.addCube({-1.5f,-2.2f,-2.5f,{1.0f, 0.0f, 0.0f}});
+    cubes.addCube({-3.8f,-2.0f,-12.3f,{1.0f, 0.0f, 0.0f}});
+    cubes.addCube({2.4f,-0.4f,-3.5f,{0.0f, 0.0f, 1.0f}});
 }
 
 Scene::~Scene()
@@ -68,6 +68,7 @@ void Scene::paintGL()
         model.rotate(angle, {0.5, 1.0, 0.0});
 
         program.setUniformValue("model", model);
+        program.setUniformValue("ourColor", cubes.cubeAt(i).getColor());
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
     
@@ -77,43 +78,85 @@ void Scene::paintGL()
 
 void Scene::initializeCube()
 {
+    // static constexpr GLfloat cubeVertices[] = {
+    //     // գագաթներ            գույներ
+    //     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+    //      0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+    //      0.5f,  0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+    //      0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+    //     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+    //     -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+    //     -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
+    //      0.5f, -0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
+    //      0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f,
+    //      0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+    //     -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+    //     -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+    //     -0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
+    //     -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+    // //  ․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․
+    // //  ․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․․
+    //     -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+    //     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+    //     -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+    //     -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+    //      0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
+    //      0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+    //      0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+    //      0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
+    //      0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+    //      0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+    //     -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
+    //      0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+    //      0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 0.0f,
+    //      0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+    //     -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+    //     -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+    //     -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
+    //      0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+    //      0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f,
+    //      0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+    //     -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+    //     -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f
+    // };
+    
     static constexpr GLfloat cubeVertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f
+        -0.5f, -0.5f, -0.5f, 
+         0.5f, -0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f, 
+        -0.5f,  0.5f, -0.5f, 
+        -0.5f, -0.5f, -0.5f, 
+        -0.5f, -0.5f,  0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f, 
+        -0.5f,  0.5f,  0.5f, 
+        -0.5f, -0.5f,  0.5f, 
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f, 
+        -0.5f, -0.5f,  0.5f, 
+        -0.5f,  0.5f,  0.5f, 
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f, 
+         0.5f, -0.5f,  0.5f, 
+         0.5f,  0.5f,  0.5f, 
+        -0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f, -0.5f,  0.5f, 
+        -0.5f, -0.5f,  0.5f, 
+        -0.5f, -0.5f, -0.5f, 
+        -0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f, 
+        -0.5f,  0.5f,  0.5f, 
+        -0.5f,  0.5f, -0.5f
     };
     
     vertexArrayObject.create();
@@ -125,12 +168,12 @@ void Scene::initializeCube()
     vertexBuffer.allocate(cubeVertices, sizeof(cubeVertices));
 
 //for positions
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
     glEnableVertexAttribArray(0);
 
 //for colors
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3*sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
+//    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3*sizeof(GLfloat)));
+//    glEnableVertexAttribArray(1);
 
 }
 
@@ -145,5 +188,5 @@ void Scene::initializeShaders()
 }
 
 void Scene::onAddCubeRequest(float posX,float posY,float posZ,const QVector3D &color){
-    cubes.addCube({posX,posY,posZ});
+    cubes.addCube({posX,posY,posZ,color});
 }

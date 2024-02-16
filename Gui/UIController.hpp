@@ -16,7 +16,7 @@ public:
     ~UIController();
 
 signals:
-    void addCubeRequested(float posX, float posY, float posZ, const QVector3D &color);
+    void addCubeRequested(const QVector3D& posVec, const QVector3D &color);
 
 private slots:
     void onAddCubeButtonClicked();

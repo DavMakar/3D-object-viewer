@@ -58,5 +58,5 @@ void UIController::onAddCubeButtonClicked()
     else {
         color = QVector3D(0.0f, 0.0f, 1.0f);  // BLue
     }
-    emit addCubeRequested(x,y,z, color);
+    emit addCubeRequested(QVector3D{x,y,z},color);
 }

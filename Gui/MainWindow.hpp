@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QAction>
 #include "UIController.hpp"
 #include "Scene.hpp"
 
@@ -12,6 +13,15 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+private:
+    void createMenu();
+
+private slots:
+    void onOpenAction();
+
+private:
+    QAction* openAction;
 
 private:
     UIController *uiController;

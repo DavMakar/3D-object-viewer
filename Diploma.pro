@@ -4,18 +4,22 @@ CONFIG += c++11
 
 SOURCES += \
     main.cpp \
-    MainWindow.cpp \
-    Scene.cpp \
-    UIController.cpp \
-    Cube.cpp \
-    CubeModel.cpp
+    Gui\MainWindow.cpp \
+    Gui\Scene.cpp \
+    Gui\UIController.cpp \
+    Data\Cube.cpp \
+    Data\CubeModel.cpp \
+    Data\CubeLoader.cpp 
 
 HEADERS += \
-    MainWindow.hpp \
-    Scene.hpp \
-    UIController.hpp \
-    Cube.hpp \
-    CubeModel.hpp
+    Gui\MainWindow.hpp \
+    Gui\Scene.hpp \
+    Gui\UIController.hpp \
+    Data\Cube.hpp \
+    Data\CubeModel.hpp \
+    Data\CubeLoader.hpp 
 
 RESOURCES += \
     shaders.qrc
+
+DISTFILES +=

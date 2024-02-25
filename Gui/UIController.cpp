@@ -7,12 +7,15 @@ UIController::UIController(QWidget *parent)
 {
     posXLineEdit = new QLineEdit(this);
     posXLineEdit->setPlaceholderText("Enter posX");
+    posXLineEdit->setReadOnly(true);
 
     posYLineEdit = new QLineEdit(this);
     posYLineEdit->setPlaceholderText("Enter posY");
+    posYLineEdit->setReadOnly(true);
 
     posZLineEdit = new QLineEdit(this);
     posZLineEdit->setPlaceholderText("Enter posZ");
+    posZLineEdit->setReadOnly(true);
 
     colorComboBox = new QComboBox(this);
     colorComboBox->addItems({"Red", "Green", "Blue"});
@@ -27,6 +30,16 @@ UIController::UIController(QWidget *parent)
     layout->addWidget(addCuboidButton);
 
     connect(addCuboidButton, &QPushButton::clicked, this, &UIController::onAddCubeButtonClicked);
+
+    //connect(posXLineEdit, SIGNAL(clicked()), this, &UIController::onLineEditClick);
+    //connect(posYLineEdit, &QLineEdit::clicked, this, &UIController::onLineEditClick);
+    //connect(posZLineEdit, &QLineEdit::clicked, this, &UIController::onLineEditClick);
+}
+
+void UIController::onLineEditClick(){
+    QLineEdit *lineEdit = qobject_cast<QLineEdit*>(sender());
+    if (lineEdit)
+        lineEdit->setReadOnly(false);
 }
 
 UIController::~UIController()

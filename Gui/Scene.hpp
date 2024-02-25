@@ -7,7 +7,8 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLVertexArrayObject>
 
-#include "Data/CubeModel.hpp"
+#include "../Data/CubeModel.hpp"
+#include "../Camera/Camera.hpp"
 
 class Scene : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -27,9 +28,14 @@ protected:
     void resizeGL(int w, int h) override;
     void paintGL() override;
 
+    void keyPressEvent(QKeyEvent *event) override;
+
 private:
     void initializeCube();
     void initializeShaders();
+
+private:
+    Camera camera;
     CubeModel cubes;
     QOpenGLBuffer vertexBuffer , indexBuffer;
     QOpenGLVertexArrayObject vertexArrayObject;

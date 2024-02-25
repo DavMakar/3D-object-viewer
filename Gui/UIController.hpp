@@ -20,6 +20,7 @@ signals:
 
 private slots:
     void onAddCubeButtonClicked();
+    void onLineEditClick();
 
 private:
     QLineEdit *posXLineEdit;

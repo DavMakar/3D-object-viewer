@@ -1,3 +1,12 @@
 .git
 .vscode
 *.pro.user
+
+release
+debug
+
+.qmake.stash
+
+Makefile
+Makefile.Debug
+Makefile.Realise

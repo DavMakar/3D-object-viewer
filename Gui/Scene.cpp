@@ -4,11 +4,17 @@
 #include <QEvent>
 #include <QKeyEvent>
 
+
 Scene::Scene(QWidget *parent)
     : QOpenGLWidget(parent)
     , vertexBuffer(QOpenGLBuffer::VertexBuffer)
     , indexBuffer(QOpenGLBuffer::IndexBuffer)
 {
+    cubes.addCube({{0.0f,0.0f,0.0f},{1.0f, 0.0f, 0.0f}});
+    cubes.addCube({{2.0f,5.0f,-15.0f},{0.0f, 1.0f, 0.0f}});
+    cubes.addCube({{-1.5f,-2.2f,-2.5f},{1.0f, 0.0f, 0.0f}});
+    cubes.addCube({{-3.8f,-2.0f,-12.3f},{1.0f, 0.0f, 0.0f}});
+    cubes.addCube({{2.4f,-0.4f,-3.5f},{0.0f, 0.0f, 1.0f}});
 }
 
 Scene::~Scene()
@@ -52,10 +58,9 @@ void Scene::paintGL()
     
     const QTime time = QTime::currentTime();
 
-    QMatrix4x4 view;
     QMatrix4x4 projection;
+    QMatrix4x4 view = camera.getView();
     
-    view.translate({0.0, 0.0, -3.0});
     projection.perspective(45.0f, 1.0f * width() / height(), 0.1f, 100.0f);
 
     program.setUniformValue("view",view);
@@ -147,4 +152,36 @@ void Scene::initializeShaders()
 
 void Scene::onAddCubeRequest(const QVector3D& pos,const QVector3D &color){
     cubes.addCube({pos,color});
+}
+
+void Scene::keyPressEvent(QKeyEvent *event){
+    switch(event->key()){
+        case Qt::Key_W:
+            camera.updateCameraPos(Camera::MoveDirection::FORWARD);
+            break; 
+        case Qt::Key_S:
+            camera.updateCameraPos(Camera::MoveDirection::BACKWARD);
+            break;
+        case Qt::Key_A:
+            camera.updateCameraPos(Camera::MoveDirection::LEFT);
+            break;
+        case Qt::Key_D:
+            camera.updateCameraPos(Camera::MoveDirection::RIGHT);
+            break;
+        case Qt::Key_Up:
+            camera.updateCameraPos(Camera::MoveDirection::UP);
+            break;
+        case Qt::Key_Down:
+            camera.updateCameraPos(Camera::MoveDirection::DOWN);
+            break;
+        case Qt::Key_E:
+            camera.updateRotation(5.0f);
+            break;
+        case Qt::Key_Q:
+            camera.updateRotation(-5.0f);
+            break;
+        default:
+            break;
+    }
+    QWidget::keyPressEvent(event);
 }

@@ -15,7 +15,9 @@ MainWindow::MainWindow(QWidget *parent)
     
     uiController = new UIController;
     uiController->setMaximumWidth(100);
+
     scene = new Scene;
+    
     QListView* cubeView = new QListView;
     cubeView->setMaximumWidth(100);
     cubeView->setModel(&scene->getModel());
@@ -30,7 +32,6 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget(widget);
 
     createMenu();
-    //setLayout(layout);
 
     connect(uiController, &UIController::addCubeRequested, scene, &Scene::onAddCubeRequest);
 }

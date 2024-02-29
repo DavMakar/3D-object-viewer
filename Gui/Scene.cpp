@@ -7,19 +7,23 @@
 
 Scene::Scene(QWidget *parent)
     : QOpenGLWidget(parent)
-    , vertexBuffer(QOpenGLBuffer::VertexBuffer)
+    , vertexBufferCube(QOpenGLBuffer::VertexBuffer)
+    , vertexBufferPyramid(QOpenGLBuffer::VertexBuffer)
     , indexBuffer(QOpenGLBuffer::IndexBuffer)
 {
+    setFocusPolicy(Qt::StrongFocus);
     cubes.addCube({{0.0f,0.0f,0.0f},{1.0f, 0.0f, 0.0f}});
-    cubes.addCube({{2.0f,5.0f,-15.0f},{0.0f, 1.0f, 0.0f}});
-    cubes.addCube({{-1.5f,-2.2f,-2.5f},{1.0f, 0.0f, 0.0f}});
-    cubes.addCube({{-3.8f,-2.0f,-12.3f},{1.0f, 0.0f, 0.0f}});
-    cubes.addCube({{2.4f,-0.4f,-3.5f},{0.0f, 0.0f, 1.0f}});
+    cubes.addCube({{6.0f,0.0f,2.0f},{0.0f, 1.0f, 0.0f}});
+    cubes.addCube({{3.5f,4.0f,0.0f},{0.0f, 0.0f, 1.0f}});
+    cubes.addCube({{-5.5f,1.0f,4.0f},{1.0f, 0.0f, 1.0f}});
+    cubes.addCube({{1.5f,-1.0f,0.0f},{0.0f, 1.0f, 1.0f}});
+    cubes.addCube({{-1.0f,-5.0f,0.0f},{0.0f, 0.5f, 1.0f}});
 }
 
 Scene::~Scene()
 {
-    vertexArrayObject.destroy();
+    vertexArrayObjectCube.destroy();
+    vertexArrayObjectPyramid.destroy();
 }
 
 void Scene::loadCubes(QList<Cube> cubeList)
@@ -41,6 +45,7 @@ void Scene::initializeGL()
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
     initializeCube();
+    initializePyramid();
     initializeShaders();
 }
 
@@ -65,21 +70,49 @@ void Scene::paintGL()
 
     program.setUniformValue("view",view);
     program.setUniformValue("projection",projection);
-   
-    QOpenGLVertexArrayObject::Binder vaoBinder(&vertexArrayObject);
-
-    for (int i = 0 ; i < cubes.rowCount(); ++i) {
-        QMatrix4x4 model;
-        model.translate(cubes.cubeAt(i).getPosition());
-
-        const float angle = 20.0f * i + (time.second() * 1000 + time.msec()) / 25 % 360;
-        model.rotate(angle, {0.5, 1.0, 0.0});
-
-        program.setUniformValue("model", model);
-        program.setUniformValue("ourColor", cubes.cubeAt(i).getColor());
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-    }
     
+    {
+        QOpenGLVertexArrayObject::Binder vaoBinder(&vertexArrayObjectCube);
+        int i = 0;
+        for (const auto& cube: cubes) {
+            QMatrix4x4 model;
+            model.translate(cube.getPosition());
+            
+            if(i % 3 == 0)
+                model.scale({3.0f,3.0f,3.0f});
+            else if(i % 2 == 0)
+                model.scale({2.0f,2.0f,2.0f});
+                
+            const float angle = 20.0f * i + (time.second() * 1000 + time.msec()) / 25 % 360;
+            model.rotate(angle, {0.5, 1.0, 0.0});
+
+            program.setUniformValue("model", model);
+
+            if (cube.isSelected()) {
+                program.setUniformValue("ourColor", QVector3D(1.0f, 1.0f, 0.0f)); 
+            } else {
+                program.setUniformValue("ourColor", cube.getColor());
+            }
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+            ++i;
+        }
+    }
+    {
+        QOpenGLVertexArrayObject::Binder vaoBinder(&vertexArrayObjectPyramid);
+        QList<Cube> pyramids;
+        pyramids.push_back({{2.0f,4.0f,6.0f},{1.0f,0.2f,0.4f}});
+        pyramids.push_back({{-2.0f,2.0f,-3.0f},{0.5f,0.4f,0.4f}});
+
+        for(auto& pyramid : pyramids){
+            QMatrix4x4 model;
+            model.translate(pyramid.getPosition());
+            model.scale({3.0f,3.0f,3.0f});
+                
+            program.setUniformValue("model", model);
+            program.setUniformValue("ourColor", pyramid.getColor());
+            glDrawArrays(GL_TRIANGLES,0, 18);
+        }
+    }    
     program.release();
     update();
 }
@@ -117,13 +150,13 @@ void Scene::initializeCube()
         5, 7, 6
     };
 
-    vertexArrayObject.create();
-    QOpenGLVertexArrayObject::Binder vaoBinder(&vertexArrayObject);
+    vertexArrayObjectCube.create();
+    QOpenGLVertexArrayObject::Binder vaoBinder(&vertexArrayObjectCube);
 
-    vertexBuffer.create();
-    vertexBuffer.bind();
-    vertexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
-    vertexBuffer.allocate(cubeVertices, sizeof(cubeVertices));
+    vertexBufferCube.create();
+    vertexBufferCube.bind();
+    vertexBufferCube.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vertexBufferCube.allocate(cubeVertices, sizeof(cubeVertices));
 
     indexBuffer.create();
     indexBuffer.bind();
@@ -137,7 +170,47 @@ void Scene::initializeCube()
 //for colors
 //    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3*sizeof(GLfloat)));
 //    glEnableVertexAttribArray(1);
+}
 
+void Scene::initializePyramid()
+{
+    static constexpr GLfloat pyramidVertices[] =
+    { 
+       -0.2f, -0.2f, 0.2f,
+       0.2f, -0.2f, 0.2f, 
+       0.0f, 0.2f, 0.0f,  
+       0.2f, -0.2f, 0.2f, 
+       0.2f, -0.2f, -0.2f,
+       0.0f, 0.2f, 0.0f,  
+       0.2f, -0.2f, -0.2f,
+      -0.2f, -0.2f, -0.2f,
+       0.0f, 0.2f, 0.0f,  
+      -0.2f, -0.2f, -0.2f,
+      -0.2f, -0.2f, 0.2f, 
+       0.0f, 0.2f, 0.0f,  
+      -0.2f, -0.2f, -0.2f,
+       0.2f, -0.2f,  0.2f, 
+      -0.2f, -0.2f,  0.2f, 
+       0.2f, -0.2f,  0.2f, 
+      -0.2f, -0.2f, -0.2f,
+       0.2f, -0.2f, -0.2f
+    };
+
+    vertexArrayObjectPyramid.create();
+    QOpenGLVertexArrayObject::Binder vaoBinder(&vertexArrayObjectPyramid);
+
+    vertexBufferPyramid.create();
+    vertexBufferPyramid.bind();
+    vertexBufferPyramid.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vertexBufferPyramid.allocate(pyramidVertices, sizeof(pyramidVertices));
+
+//for positions
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
+
+//for colors
+//    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3*sizeof(GLfloat)));
+//    glEnableVertexAttribArray(1);
 }
 
 void Scene::initializeShaders()

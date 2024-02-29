@@ -32,13 +32,14 @@ protected:
 
 private:
     void initializeCube();
+    void initializePyramid();
     void initializeShaders();
 
 private:
     Camera camera;
     CubeModel cubes;
-    QOpenGLBuffer vertexBuffer , indexBuffer;
-    QOpenGLVertexArrayObject vertexArrayObject;
+    QOpenGLBuffer vertexBufferCube, vertexBufferPyramid , indexBuffer;
+    QOpenGLVertexArrayObject vertexArrayObjectCube , vertexArrayObjectPyramid;
     QOpenGLShaderProgram program;
 };
 #endif // SCENE_HPP

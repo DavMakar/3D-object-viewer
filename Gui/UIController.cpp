@@ -4,25 +4,26 @@
 
 UIController::UIController(QWidget *parent)
     : QWidget(parent)
-{
+{    
+    shapeComboBox = new QComboBox(this);
+    shapeComboBox->addItems({"Cube", "Pyramid"});
+
     posXLineEdit = new QLineEdit(this);
     posXLineEdit->setPlaceholderText("Enter posX");
-    posXLineEdit->setReadOnly(true);
 
     posYLineEdit = new QLineEdit(this);
     posYLineEdit->setPlaceholderText("Enter posY");
-    posYLineEdit->setReadOnly(true);
 
     posZLineEdit = new QLineEdit(this);
     posZLineEdit->setPlaceholderText("Enter posZ");
-    posZLineEdit->setReadOnly(true);
 
     colorComboBox = new QComboBox(this);
     colorComboBox->addItems({"Red", "Green", "Blue"});
-
+    
     addCuboidButton = new QPushButton("Add Object", this);
 
     QVBoxLayout *layout = new QVBoxLayout(this);
+    layout->addWidget(shapeComboBox);
     layout->addWidget(posXLineEdit);
     layout->addWidget(posYLineEdit);
     layout->addWidget(posZLineEdit);

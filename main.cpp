@@ -1,7 +1,14 @@
 #include <QSurfaceFormat>
 #include <QApplication>
-#include "Gui/MainWindow.hpp"
-//#include "Gui/Scene.hpp"
+
+//#define SCENE
+
+#ifndef SCENE 
+    #include "Gui/MainWindow.hpp"
+#else
+    #include "Gui/Scene.hpp"
+#endif
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -10,9 +17,13 @@ int main(int argc, char *argv[])
     format.setDepthBufferSize(24);
     QSurfaceFormat::setDefaultFormat(format);
 
-//    Scene s;
-//    s.show();
+#ifndef SCENE 
     MainWindow mw;
-    mw.show();
+    mw.show();   
+#else
+    Scene s;
+    s.show();
+#endif
+
     return a.exec();
 }

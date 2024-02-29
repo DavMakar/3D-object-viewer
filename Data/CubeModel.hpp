@@ -12,8 +12,16 @@ public:
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index , int role) const;
-    void addCube(const Cube& cube);
     const Cube& cubeAt(int index) const;
+    void addCube(const Cube& cube);
+
+    void toggleCubeSelection(int index);
+
+    bool isCubeSelected(int index) const;
+
+    QList<Cube>::iterator begin();
+    QList<Cube>::iterator end();
+    
 private:
     QList<Cube> m_CubeList;
 };

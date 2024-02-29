@@ -23,6 +23,7 @@ private slots:
     void onLineEditClick();
 
 private:
+    QComboBox *shapeComboBox;
     QLineEdit *posXLineEdit;
     QLineEdit *posYLineEdit;
     QLineEdit *posZLineEdit;

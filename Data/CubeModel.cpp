@@ -19,7 +19,7 @@ QVariant CubeModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
     if(role == Qt::DisplayRole){
-        return QString("Cube %1").arg(index.row()+1);
+        return QString("Object %1").arg(index.row()+1);
     }
     return QVariant();
 }
@@ -34,3 +34,30 @@ const Cube& CubeModel::cubeAt(int index) const
 {
     return m_CubeList.at(index);
 }
+
+QList<Cube>::iterator CubeModel::begin()
+{
+    return m_CubeList.begin();
+}
+
+QList<Cube>::iterator CubeModel::end(){
+    return m_CubeList.end();
+}
+
+void CubeModel::toggleCubeSelection(int index){
+    if (index >= 0 && index < m_CubeList.size()) {
+        Cube& cube = m_CubeList[index];
+        cube.setSelected(!cube.isSelected());
+        // Notify any views that the data has changed
+        QModelIndex modelIndex = createIndex(index, 0);
+        emit dataChanged(modelIndex, modelIndex);
+    }
+}
+bool CubeModel::isCubeSelected(int index) const
+{
+    if (index >= 0 && index < m_CubeList.size()) {
+        const Cube& cube = m_CubeList[index];
+        return cube.isSelected();
+    }
+    return false;
+};

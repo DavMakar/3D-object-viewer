@@ -7,7 +7,8 @@ Camera::Camera()
     m_speed(1.5f),
     m_zoom(45.0f), 
     m_pitch(0.0f),
-    m_yaw(-90.0f)
+    m_yaw(-90.0f),
+    m_fov(45.0f)
 {
     updateCameraVectors();
 }
@@ -15,6 +16,16 @@ QMatrix4x4 Camera::getView() const{
     QMatrix4x4 view;
     view.lookAt(m_cameraPos , m_cameraPos + m_cameraFront, m_cameraUp);
     return view;
+}
+QMatrix4x4 Camera::getProjection(int width , int height) const{
+    QMatrix4x4 projection;
+    projection.perspective(m_fov, 1.0 * width / height , 0.1f, 100.0f);
+    return projection;
+}
+
+QVector3D Camera::getPosition() const
+{
+    return m_cameraPos;
 }
 
 void Camera::updateCameraDirection(double dx,double dy){

@@ -30,7 +30,11 @@ void CubeModel::addCube(const Cube &cube){
     m_CubeList.prepend(cube);
     endInsertRows();
 }
-const Cube& CubeModel::cubeAt(int index) const
+const QList<Cube> &CubeModel::getCubes() const
+{
+    return m_CubeList;
+}
+const Cube &CubeModel::cubeAt(int index) const
 {
     return m_CubeList.at(index);
 }

@@ -9,7 +9,7 @@
 #include <QItemSelectionModel>
 #include <QItemSelection>
 
-#include "../Data/CubeLoader.hpp"
+#include "../Data/CubeSerializer.hpp"
 #include "UIController.hpp"
 #include "Scene.hpp"
 
@@ -17,9 +17,13 @@ MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
 {
     importAction = new QAction(tr("&Import objects"), this);
-    importAction->setStatusTip(tr("load objects json"));
+    importAction->setStatusTip(tr("load objects from json"));
+    exportAction = new QAction(tr("&Export objects"),this);
+    exportAction->setStatusTip(tr("export objects from json"));
+
     connect(importAction,&QAction::triggered, this, &MainWindow::onImportAction);
-    
+    connect(exportAction,&QAction::triggered, this, &MainWindow::onExportAction);
+
     uiController = new UIController;
     uiController->setMaximumWidth(100);
 
@@ -41,7 +45,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(uiController, &UIController::addCubeRequested, scene, &Scene::onAddCubeRequest);
     connect(selectionModel, &QItemSelectionModel::selectionChanged, this , &MainWindow::onSelectionChanged);
-//    installEventFilterOnWidgets(this);
 }
 
 QMenuBar* MainWindow::createMenuBar(){
@@ -51,6 +54,7 @@ QMenuBar* MainWindow::createMenuBar(){
     menuBar->addMenu(importMenu);
     menuBar->addMenu(exportMenu);
     importMenu->addAction(importAction);
+    exportMenu->addAction(exportAction);
     return menuBar;
 }
 
@@ -60,11 +64,20 @@ void MainWindow::onImportAction(){
         qDebug() << "Empty file";
         return;
     }
-    scene->loadCubes(CubeLoader::loadCubesFromJson(filename));
+    scene->loadCubes(CubeSerializer::importCubesFromJson(filename));
 }
 
 void MainWindow::onExportAction(){
-    qDebug() << "Export";    
+    QString filename = QFileDialog::getSaveFileName(this, tr("Export Cubes"), "", tr("JSON Files (*.json)"));
+    if (filename.isEmpty()) {
+        qDebug() << "Empty file";
+        return;
+    }
+    if (!CubeSerializer::exportCubesToJson(scene->getModel().getCubes(), filename)) {
+        qDebug() << "Export failed";
+        return;
+    }
+    qDebug() << "Export successful";
 }
 
 void MainWindow::onSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)

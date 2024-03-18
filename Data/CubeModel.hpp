@@ -14,6 +14,7 @@ public:
     QVariant data(const QModelIndex &index , int role) const;
     const Cube& cubeAt(int index) const;
     void addCube(const Cube& cube);
+    const QList<Cube>& getCubes() const;
 
     void toggleCubeSelection(int index);
 

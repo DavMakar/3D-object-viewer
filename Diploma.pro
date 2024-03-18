@@ -9,8 +9,11 @@ SOURCES += \
     Gui\UIController.cpp \
     Data\Cube.cpp \
     Data\CubeModel.cpp \
-    Data\CubeLoader.cpp \
-    Camera\Camera.cpp
+    Data\CubeSerializer.cpp \
+    ShaderManager\ShaderManager.cpp \
+    Renderer\Renderer.cpp \
+    Camera\Camera.cpp \
+    MousePicker\MousePicker.cpp
 
 HEADERS += \
     Gui\MainWindow.hpp \
@@ -18,8 +21,11 @@ HEADERS += \
     Gui\UIController.hpp \
     Data\Cube.hpp \
     Data\CubeModel.hpp \
-    Data\CubeLoader.hpp \
-    Camera\Camera.hpp
+    Data\CubeSerializer.hpp \
+    ShaderManager\ShaderManager.hpp \
+    Renderer\Renderer.hpp \
+    Camera\Camera.hpp \
+    MousePicker\MousePicker.hpp
 
 RESOURCES += \
     shaders.qrc

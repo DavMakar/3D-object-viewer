@@ -31,10 +31,6 @@ UIController::UIController(QWidget *parent)
     layout->addWidget(addCuboidButton);
 
     connect(addCuboidButton, &QPushButton::clicked, this, &UIController::onAddCubeButtonClicked);
-
-    //connect(posXLineEdit, SIGNAL(clicked()), this, &UIController::onLineEditClick);
-    //connect(posYLineEdit, &QLineEdit::clicked, this, &UIController::onLineEditClick);
-    //connect(posZLineEdit, &QLineEdit::clicked, this, &UIController::onLineEditClick);
 }
 
 void UIController::onLineEditClick(){

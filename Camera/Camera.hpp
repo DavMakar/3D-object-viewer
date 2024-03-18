@@ -19,6 +19,8 @@ public:
     float getYaw() const;
     float getRoll() const;
     QMatrix4x4 getView() const;
+    QMatrix4x4 getProjection(int width , int height) const;
+    QVector3D getPosition() const;
 
     void updateCameraDirection(double dx,double dy);
     void updateCameraPos(MoveDirection dir);
@@ -39,7 +41,7 @@ private:
         float m_pitch; // rotation y
         float m_yaw; // z
         float m_roll; // x
-        // float m_fow = 70.0f;
+        float m_fov;
         // float m_nearPlane = 0.1f;
         // float m_farPlane = 100;
 

@@ -7,9 +7,9 @@ SOURCES += \
     Gui\MainWindow.cpp \
     Gui\Scene.cpp \
     Gui\UIController.cpp \
-    Data\Cube.cpp \
-    Data\CubeModel.cpp \
-    Data\CubeSerializer.cpp \
+    Data\Shape.cpp \
+    Data\ShapeModel.cpp \
+    Data\ShapeSerializer.cpp \
     ShaderManager\ShaderManager.cpp \
     Renderer\Renderer.cpp \
     Camera\Camera.cpp \
@@ -19,9 +19,9 @@ HEADERS += \
     Gui\MainWindow.hpp \
     Gui\Scene.hpp \
     Gui\UIController.hpp \
-    Data\Cube.hpp \
-    Data\CubeModel.hpp \
-    Data\CubeSerializer.hpp \
+    Data\Shape.hpp \
+    Data\ShapeModel.hpp \
+    Data\ShapeSerializer.hpp \
     ShaderManager\ShaderManager.hpp \
     Renderer\Renderer.hpp \
     Camera\Camera.hpp \

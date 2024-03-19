@@ -1,23 +1,23 @@
-#include "CubeSerializer.hpp"
+#include "ShapeSerializer.hpp"
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
 
-QList<Cube> CubeSerializer::importCubesFromJson(const QString &filename)
+QList<Shape> ShapeSerializer::importShapesFromJson(const QString &filename)
 {
-    QList<Cube> cubeList;
+    QList<Shape> shapes;
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly))
     {
-        return cubeList;
+        return shapes;
     };
     QJsonDocument jsonDoc = QJsonDocument::fromJson(file.readAll());
 
     if (!jsonDoc.isArray())
     {
         qDebug() << "Invalid JSON format. Expected array.";
-        return cubeList;
+        return shapes;
     }
 
     QJsonArray jsonArray = jsonDoc.array();
@@ -28,22 +28,24 @@ QList<Cube> CubeSerializer::importCubesFromJson(const QString &filename)
             qDebug() << "Invalid JSON format. Expected object.";
             continue;
         }
-
+        
         QJsonObject jsonObj = value.toObject();
+        
+        QString type = jsonObj["type"].toString();
         QJsonObject positionObj = jsonObj["position"].toObject();
         QJsonObject colorObj = jsonObj["color"].toObject();
 
         auto posVec = parseVectorFromJsonObj(positionObj, {"x", "y", "z"});
         auto colorVec = parseVectorFromJsonObj(colorObj, {"r", "g", "b"});
 
-        cubeList.append({posVec, colorVec});
+        shapes.append({type,posVec, colorVec});
     }
 
     file.close();
-    return cubeList;
+    return shapes;
 }
 
-bool CubeSerializer::exportCubesToJson(const QList<Cube>& cubeList, const QString & filename)
+bool ShapeSerializer::exportShapesToJson(const QList<Shape>& shapes, const QString & filename)
 {
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly))
@@ -53,25 +55,27 @@ bool CubeSerializer::exportCubesToJson(const QList<Cube>& cubeList, const QStrin
     }
 
     QJsonArray jsonArray;
-    for (const Cube& cube : cubeList)
+    for (const auto& shape : shapes)
     {
-        QJsonObject cubeObj;
+        QJsonObject shapeObj;
+
+        shapeObj["type"] = shape.type();
 
         QJsonObject positionObj;
-        auto cubePos = cube.getPosition();
-        positionObj["x"] = cubePos.x();
-        positionObj["y"] = cubePos.y();
-        positionObj["z"] = cubePos.z();
-        cubeObj["position"] = positionObj;
+        auto shapePos = shape.getPosition();
+        positionObj["x"] = shapePos.x();
+        positionObj["y"] = shapePos.y();
+        positionObj["z"] = shapePos.z();
+        shapeObj["position"] = positionObj;
 
         QJsonObject colorObj;
-        auto cubeColor = cube.getColor();
-        colorObj["r"] = cubeColor.x();
-        colorObj["g"] = cubeColor.y();
-        colorObj["b"] = cubeColor.z();
-        cubeObj["color"] = colorObj;
+        auto shapeColor = shape.getColor();
+        colorObj["r"] = shapeColor.x();
+        colorObj["g"] = shapeColor.y();
+        colorObj["b"] = shapeColor.z();
+        shapeObj["color"] = colorObj;
 
-        jsonArray.append(cubeObj);
+        jsonArray.append(shapeObj);
     }
     QJsonDocument jsonDoc(jsonArray);
     file.write(jsonDoc.toJson());
@@ -79,7 +83,7 @@ bool CubeSerializer::exportCubesToJson(const QList<Cube>& cubeList, const QStrin
     return true;
 }
 
-QVector3D CubeSerializer::parseVectorFromJsonObj(const QJsonObject &obj, const QStringList &prefixes)
+QVector3D ShapeSerializer::parseVectorFromJsonObj(const QJsonObject &obj, const QStringList &prefixes)
 {
     float value1 = static_cast<float>(obj[prefixes[0]].toDouble());
     float value2 = static_cast<float>(obj[prefixes[1]].toDouble());

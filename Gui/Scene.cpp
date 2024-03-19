@@ -20,16 +20,16 @@ Scene::~Scene()
     delete renderer;
 }
 
-void Scene::loadCubes(QList<Cube> cubeList)
-{
-    for(auto& cube: cubeList){
-        cubes.addCube(cube);
+void Scene::loadShapes(const QList<Shape>& shapeList)
+{  
+    for(auto& shape : shapeList){
+        shapes.addShape(shape);
     }
 }
 
-CubeModel &Scene::getModel()
+ShapeModel &Scene::getModel()
 {
-    return cubes;
+    return shapes;
 }
 
 void Scene::initializeGL()
@@ -40,6 +40,7 @@ void Scene::initializeGL()
 
     initializeCube();
     initializePyramid();
+   //initializeSphere();
     if(!shaderManager.loadAndCompileShaders(":/Shaders/vshader.vsh", ":/Shaders/fshader.fsh")){
         close();
     };
@@ -66,22 +67,10 @@ void Scene::paintGL()
     if(renderer == nullptr)
         renderer = new Renderer(shaderManager.getProgram(),vertexArrayObjectCube,vertexArrayObjectPyramid);
     
-    renderShapes();
+    renderer->drawScene(shapes.getShapes());
 
     shaderManager.getProgram().release();
     update();
-}
-
-void Scene::renderShapes()
-{
-    // for(shape : shapes){
-    //     renderer->renderShape(shape);    
-    // }
-    // FIX
-    renderer->renderCubes(cubes);
-    for (auto &pyramid : pyramids) {
-        renderer->renderPyramid(pyramid);
-    }
 }
 
 void Scene::initializeCube()
@@ -139,24 +128,24 @@ void Scene::initializePyramid()
 {
     static constexpr GLfloat pyramidVertices[] =
     { 
-       -0.2f, -0.2f, 0.2f,
-       0.2f, -0.2f, 0.2f, 
-       0.0f, 0.2f, 0.0f,  
-       0.2f, -0.2f, 0.2f, 
-       0.2f, -0.2f, -0.2f,
-       0.0f, 0.2f, 0.0f,  
-       0.2f, -0.2f, -0.2f,
-      -0.2f, -0.2f, -0.2f,
-       0.0f, 0.2f, 0.0f,  
-      -0.2f, -0.2f, -0.2f,
-      -0.2f, -0.2f, 0.2f, 
-       0.0f, 0.2f, 0.0f,  
-      -0.2f, -0.2f, -0.2f,
-       0.2f, -0.2f,  0.2f, 
-      -0.2f, -0.2f,  0.2f, 
-       0.2f, -0.2f,  0.2f, 
-      -0.2f, -0.2f, -0.2f,
-       0.2f, -0.2f, -0.2f
+       -0.5f, -0.5f, 0.5f,
+       0.5f, -0.5f, 0.5f, 
+       0.0f, 0.5f, 0.0f,  
+       0.5f, -0.5f, 0.5f, 
+       0.5f, -0.5f, -0.5f,
+       0.0f, 0.5f, 0.0f,  
+       0.5f, -0.5f, -0.5f,
+      -0.5f, -0.5f, -0.5f,
+       0.0f, 0.5f, 0.0f,  
+      -0.5f, -0.5f, -0.5f,
+      -0.5f, -0.5f, 0.5f, 
+       0.0f, 0.5f, 0.0f,  
+      -0.5f, -0.5f, -0.5f,
+       0.5f, -0.5f,  0.5f, 
+      -0.5f, -0.5f,  0.5f, 
+       0.5f, -0.5f,  0.5f, 
+      -0.5f, -0.5f, -0.5f,
+       0.5f, -0.5f, -0.5f
     };
 
     vertexArrayObjectPyramid.create();
@@ -179,7 +168,7 @@ void Scene::initializeSphere()
     std::vector<unsigned int> sphereIndices;
     const int stacks = 20; 
     const int slices = 20; 
-    const float radius = 0.5f;
+    const float radius = 0.2f;
 
     for (int i = 0; i <= stacks; ++i)
     {
@@ -233,6 +222,7 @@ void Scene::initializeSphere()
     sphereBuffers.vertexBuffer.allocate(sphereVertices.data(), sphereVertices.size() * sizeof(float));
 
     // Initialize index buffer
+    //qDebug() << "sphereIdx " << sphereIndices.size();
     sphereBuffers.indexBuffer.create();
     sphereBuffers.indexBuffer.bind();
     sphereBuffers.indexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
@@ -243,8 +233,8 @@ void Scene::initializeSphere()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
 }
 
-void Scene::onAddCubeRequest(const QVector3D& pos,const QVector3D &color){
-    cubes.addCube({pos,color});
+void Scene::onAddShapeRequest(const QString& type,const QVector3D& pos,const QVector3D &color){
+    shapes.addShape({type,pos,color});
 }
 
 void Scene::mousePressEvent(QMouseEvent *event){
@@ -255,21 +245,21 @@ void Scene::mousePressEvent(QMouseEvent *event){
     auto cameraPos = camera.getPosition();
     qDebug() << "camera Pos " << cameraPos;
 
-    for(auto& cube : cubes){
-        cube.setSelected(false);
+    for(auto& shape : shapes){
+        shape.setSelected(false);
     }
 
-    for(auto& cube : cubes){
-        if(intersects(cameraPos, rayWorld , cube)){
+    for(auto& shape : shapes){
+        if(intersects(cameraPos, rayWorld , shape)){
             qDebug() << "selected";
-            cube.setSelected(true);
+            shape.setSelected(true);
         }
     }
 }
 
-bool Scene::intersects(QVector3D rayOrigin, QVector3D rayDir, const Cube& cube) {
+bool Scene::intersects(QVector3D rayOrigin, QVector3D rayDir, const Shape& shape) {
     QMatrix4x4 model;
-    model.translate(cube.getPosition());
+    model.translate(shape.getPosition());
 
     QMatrix4x4 modelInverse = model.inverted();
     

@@ -13,13 +13,11 @@ class UIController : public QWidget
 
 public:
     explicit UIController(QWidget *parent = nullptr);
-    ~UIController();
-
 signals:
-    void addCubeRequested(const QVector3D& posVec, const QVector3D &color);
+    void addShapeRequested(const QString& type,const QVector3D& posVec, const QVector3D &color);
 
 private slots:
-    void onAddCubeButtonClicked();
+    void onAddShapeButtonClicked();
     void onLineEditClick();
 
 private:
@@ -28,7 +26,7 @@ private:
     QLineEdit *posYLineEdit;
     QLineEdit *posZLineEdit;
     QComboBox *colorComboBox;
-    QPushButton *addCuboidButton;
+    QPushButton *addShapeButton;
 };
 
 #endif // UICONTROLLER_H

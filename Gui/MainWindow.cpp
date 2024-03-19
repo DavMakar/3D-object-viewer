@@ -9,7 +9,7 @@
 #include <QItemSelectionModel>
 #include <QItemSelection>
 
-#include "../Data/CubeSerializer.hpp"
+#include "../Data/ShapeSerializer.hpp"
 #include "UIController.hpp"
 #include "Scene.hpp"
 
@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->setLayout(layout);
 
-    connect(uiController, &UIController::addCubeRequested, scene, &Scene::onAddCubeRequest);
+    connect(uiController, &UIController::addShapeRequested, scene, &Scene::onAddShapeRequest);
     connect(selectionModel, &QItemSelectionModel::selectionChanged, this , &MainWindow::onSelectionChanged);
 }
 
@@ -64,7 +64,7 @@ void MainWindow::onImportAction(){
         qDebug() << "Empty file";
         return;
     }
-    scene->loadCubes(CubeSerializer::importCubesFromJson(filename));
+    scene->loadShapes(ShapeSerializer::importShapesFromJson(filename));
 }
 
 void MainWindow::onExportAction(){
@@ -73,7 +73,7 @@ void MainWindow::onExportAction(){
         qDebug() << "Empty file";
         return;
     }
-    if (!CubeSerializer::exportCubesToJson(scene->getModel().getCubes(), filename)) {
+    if (!ShapeSerializer::exportShapesToJson(scene->getModel().getShapes(), filename)) {
         qDebug() << "Export failed";
         return;
     }
@@ -86,11 +86,11 @@ void MainWindow::onSelectionChanged(const QItemSelection &selected, const QItemS
     QModelIndex deselectedIndex = deselected.indexes().isEmpty() ? QModelIndex() : deselected.indexes().first();
 
     if (selectedIndex.isValid()) {
-        scene->getModel().toggleCubeSelection(selectedIndex.row());
+        scene->getModel().toggleShapeSelection(selectedIndex.row());
     }
 
     if (deselectedIndex.isValid()) {
-        scene->getModel().toggleCubeSelection(deselectedIndex.row());
+        scene->getModel().toggleShapeSelection(deselectedIndex.row());
     }
 }
 

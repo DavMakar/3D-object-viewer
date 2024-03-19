@@ -7,7 +7,7 @@
 #include <QOpenGLVertexArrayObject>
 
 #include "../Camera/Camera.hpp"
-#include "../Data/CubeModel.hpp"
+#include "../Data/ShapeModel.hpp"
 #include "../ShaderManager/ShaderManager.hpp"
 #include "../Renderer/Renderer.hpp"
 #include "../MousePicker/MousePicker.hpp"
@@ -18,13 +18,13 @@ class Scene : public QOpenGLWidget, protected QOpenGLFunctions
 public:
     Scene(QWidget *parent = nullptr);
     ~Scene();
-    void loadCubes(QList<Cube> cubeList);
+    void loadShapes(const QList<Shape>& shapes);
 
 public slots:
-    void onAddCubeRequest(const QVector3D &posVec, const QVector3D &color);
+    void onAddShapeRequest(const QString& type, const QVector3D &posVec, const QVector3D &color);
 
 public:
-    CubeModel& getModel();
+    ShapeModel& getModel();
 
 protected:
     void initializeGL() override;
@@ -35,9 +35,8 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
 
 private:
-    bool intersects(QVector3D rayOrigin, QVector3D rayDir ,const Cube& cube);
+    bool intersects(QVector3D rayOrigin, QVector3D rayDir ,const Shape& shape);
     
-    void renderShapes();
     void initializeCube();
     void initializePyramid();
     void initializeSphere();
@@ -50,9 +49,7 @@ private:
 
     Camera camera;
     MousePicker mousePicker;
-    CubeModel cubes;
-    QList<Cube> pyramids; 
-    QList<Cube> spheres; 
+    ShapeModel shapes; 
     ShaderManager shaderManager;
     Renderer* renderer;
     Buffers cubeBuffers, pyramidBuffers, sphereBuffers;

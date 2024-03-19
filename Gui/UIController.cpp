@@ -20,7 +20,7 @@ UIController::UIController(QWidget *parent)
     colorComboBox = new QComboBox(this);
     colorComboBox->addItems({"Red", "Green", "Blue"});
     
-    addCuboidButton = new QPushButton("Add Object", this);
+    addShapeButton = new QPushButton("Add Object", this);
 
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(shapeComboBox);
@@ -28,9 +28,9 @@ UIController::UIController(QWidget *parent)
     layout->addWidget(posYLineEdit);
     layout->addWidget(posZLineEdit);
     layout->addWidget(colorComboBox);
-    layout->addWidget(addCuboidButton);
+    layout->addWidget(addShapeButton);
 
-    connect(addCuboidButton, &QPushButton::clicked, this, &UIController::onAddCubeButtonClicked);
+    connect(addShapeButton, &QPushButton::clicked, this, &UIController::onAddShapeButtonClicked);
 }
 
 void UIController::onLineEditClick(){
@@ -39,12 +39,10 @@ void UIController::onLineEditClick(){
         lineEdit->setReadOnly(false);
 }
 
-UIController::~UIController()
+void UIController::onAddShapeButtonClicked()
 {
-}
-
-void UIController::onAddCubeButtonClicked()
-{
+    QString type = shapeComboBox->currentText();
+    
     bool ok;
     float x = posXLineEdit->text().toFloat(&ok);
     posXLineEdit->clear();
@@ -59,6 +57,7 @@ void UIController::onAddCubeButtonClicked()
     if (!ok) return;
 
     QString colorString = colorComboBox->currentText();
+
     QVector3D color;
     if (colorString == "Red"){
         color = QVector3D(1.0f, 0.0f, 0.0f);
@@ -68,5 +67,5 @@ void UIController::onAddCubeButtonClicked()
     else {
         color = QVector3D(0.0f, 0.0f, 1.0f);  // BLue
     }
-    emit addCubeRequested(QVector3D{x,y,z},color);
+    emit addShapeRequested(type,QVector3D{x,y,z},color);
 }

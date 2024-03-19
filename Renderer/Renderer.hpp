@@ -2,19 +2,22 @@
 #define RENDERER_HPP
 
 
-class Cube;
-class CubeModel;
 class QOpenGLShaderProgram;
 class QOpenGLVertexArrayObject;
 
 #include <QOpenGLFunctions>
+#include "../Data/Shape.hpp"
 
 class Renderer: protected QOpenGLFunctions{
 public:
-    Renderer(QOpenGLShaderProgram& program, QOpenGLVertexArrayObject& cubeVAO, QOpenGLVertexArrayObject& pyramidVAO);
-    void renderCubes(CubeModel& cubes);
-    void renderPyramid(const Cube& pyramid);
+    Renderer(QOpenGLShaderProgram& program, QOpenGLVertexArrayObject& cubeVAO,
+     QOpenGLVertexArrayObject& pyramidVAO);
+    void drawScene(const QList<Shape>& shapes);
 
+private:
+    void renderCube(const Shape& shape);
+    void renderPyramid(const Shape& shape);
+   // void renderSphere(const Shape& shape);
 
 private:
     QOpenGLShaderProgram& program;

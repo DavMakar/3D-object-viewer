@@ -21,10 +21,9 @@ MainWindow::MainWindow(QWidget *parent)
     importAction->setStatusTip(tr("load objects from json"));
     exportAction = new QAction(tr("&Export objects"),this);
     exportAction->setStatusTip(tr("export objects from json"));
-
-    connect(importAction,&QAction::triggered, this, &MainWindow::onImportAction);
-    connect(exportAction,&QAction::triggered, this, &MainWindow::onExportAction);
-
+    clearAction = new QAction(tr("&Clear Scene"), this);
+    clearAction->setStatusTip(tr("remove all objects from scene"));
+    
     uiController = new UIController;
     uiController->setMaximumWidth(100);
 
@@ -47,6 +46,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->setLayout(layout);
 
+    connect(importAction,&QAction::triggered, this, &MainWindow::onImportAction);
+    connect(exportAction,&QAction::triggered, this, &MainWindow::onExportAction);
+    connect(clearAction, &QAction::triggered, scene, &Scene::onClearSceneAction);
+
     connect(uiController, &UIController::addShapeRequested, scene, &Scene::onAddShapeRequest);
     connect(selectionModel, &QItemSelectionModel::selectionChanged, this , &MainWindow::onSelectionChanged);
     connect(delegate, &ShapesListViewDelegate::deleteButtonClicked, this, &MainWindow::onDeleteButtonClicked);
@@ -56,10 +59,14 @@ QMenuBar* MainWindow::createMenuBar(){
     QMenuBar* menuBar = new QMenuBar();
     QMenu* importMenu = new QMenu(tr("&Import"));
     QMenu* exportMenu = new QMenu(tr("&Export"));
+    QMenu* sceneMenu = new QMenu(tr("&Scene"));
+
     menuBar->addMenu(importMenu);
     menuBar->addMenu(exportMenu);
+    menuBar->addMenu(sceneMenu);
     importMenu->addAction(importAction);
     exportMenu->addAction(exportAction);
+    sceneMenu->addAction(clearAction);
     return menuBar;
 }
 

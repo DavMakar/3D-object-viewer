@@ -41,6 +41,11 @@ void ShapeModel::removeShape(int index)
     m_ShapeList.removeAt(index);
 }
 
+void ShapeModel::removeAllShapes()
+{
+    m_ShapeList.clear();
+}
+
 const QList<Shape>& ShapeModel::getShapes() const
 {
     return m_ShapeList;

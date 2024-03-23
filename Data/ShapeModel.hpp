@@ -15,6 +15,7 @@ public:
     const Shape& shapeAt(int index) const;
     void addShape(const Shape& shape); 
     void removeShape(int index);
+    void removeAllShapes();
     const QList<Shape>& getShapes() const;
     void toggleShapeSelection(int index);
 

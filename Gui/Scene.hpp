@@ -22,6 +22,7 @@ public:
 
 public slots:
     void onAddShapeRequest(const QString& type, const QVector3D &posVec, const QVector3D &color);
+    void onClearSceneAction();
 
 public:
     ShapeModel& getModel();

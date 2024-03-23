@@ -27,6 +27,11 @@ void Scene::loadShapes(const QList<Shape>& shapeList)
     }
 }
 
+void Scene::onClearSceneAction()
+{
+    shapes.removeAllShapes();
+}
+
 ShapeModel &Scene::getModel()
 {
     return shapes;

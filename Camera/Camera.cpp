@@ -1,17 +1,18 @@
 #include "Camera.hpp"
 
 Camera::Camera()
-    :m_cameraPos(0.0f,0.0f,3.0f), 
+    :m_cameraPos(0.25f,1.0f,3.0f),
     m_worldUp(0.0f,1.0f,0.0f),
     m_cameraFront(0.0f,0.0f,-1.0f),
-    m_speed(1.5f),
+    m_speed(1.0f),
     m_zoom(45.0f), 
-    m_pitch(0.0f),
+    m_pitch(-15.0f),
     m_yaw(-90.0f),
     m_fov(45.0f)
 {
     updateCameraVectors();
 }
+
 QMatrix4x4 Camera::getView() const{
     QMatrix4x4 view;
     view.lookAt(m_cameraPos , m_cameraPos + m_cameraFront, m_cameraUp);
@@ -56,10 +57,10 @@ void Camera::updateCameraPos(MoveDirection dir){
         m_cameraPos -= m_cameraRight * m_speed;
         break;
     case MoveDirection::UP:
-        m_cameraPos += m_cameraUp * m_speed;
+        m_cameraPos += m_cameraUp * m_speed/2;
         break;
     case MoveDirection::DOWN:
-        m_cameraPos -= m_cameraUp * m_speed;
+        m_cameraPos -= m_cameraUp * m_speed/2;
         break;
     }
 }
@@ -93,6 +94,6 @@ float Camera::getRoll() const
 
 void Camera::updateRotation(float angle)
 {
-    m_yaw += angle;
+    m_pitch += angle;
     updateCameraVectors();
 }

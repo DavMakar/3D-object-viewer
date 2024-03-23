@@ -7,32 +7,35 @@
 #include "../Data/ShapeModel.hpp"
 
 Renderer::Renderer(QOpenGLShaderProgram &program,
-  QOpenGLVertexArrayObject &cubeVAO,
-  QOpenGLVertexArrayObject &pyramidVAO,
-  QOpenGLVertexArrayObject &sphereVAO)
-    :program(program) , cubeVAO(cubeVAO) , pyramidVAO(pyramidVAO), sphereVAO(sphereVAO)
+  QOpenGLVertexArrayObject &vaoGrid,
+  QOpenGLVertexArrayObject &vaoCube,
+  QOpenGLVertexArrayObject &vaoPyramid,
+  QOpenGLVertexArrayObject &vaoSphere)
+    :program(program) , vaoGrid(vaoGrid) , vaoCube(vaoCube) , vaoPyramid(vaoPyramid), vaoSphere(vaoSphere)
 {
     initializeOpenGLFunctions();
 }
 
 void Renderer::drawScene(const QList<Shape>& shapes)
 {
+    drawGrid();
     for(const auto& shape : shapes){
         auto type = shape.type();
         if(type == "Cube"){
             renderCube(shape);
-        }else if(type == "Pyramid"){
-            renderPyramid(shape);
         }
         else if(type == "Sphere"){
             renderSphere(shape);
+        }
+        else if(type == "Pyramid"){
+            renderPyramid(shape);
         }
     }
 }
 
 void Renderer::renderCube(const Shape& cube)
 {
-    QOpenGLVertexArrayObject::Binder vaoBinder(&cubeVAO);
+    QOpenGLVertexArrayObject::Binder vaoBinder(&vaoCube);
     QMatrix4x4 model;
     model.translate(cube.getPosition());
     program.setUniformValue("model", model);
@@ -46,7 +49,7 @@ void Renderer::renderCube(const Shape& cube)
 
 void Renderer::renderPyramid(const Shape& pyramid)
 {
-    QOpenGLVertexArrayObject::Binder vaoBinder(&pyramidVAO);
+    QOpenGLVertexArrayObject::Binder vaoBinder(&vaoPyramid);
     QMatrix4x4 model;
     model.translate(pyramid.getPosition());
 
@@ -57,7 +60,7 @@ void Renderer::renderPyramid(const Shape& pyramid)
 
 void Renderer::renderSphere(const Shape& sphere)
 {
-   QOpenGLVertexArrayObject::Binder vaoBinder(&sphereVAO);
+   QOpenGLVertexArrayObject::Binder vaoBinder(&vaoSphere);
    QMatrix4x4 model;
    model.translate(sphere.getPosition());
    program.setUniformValue("model", model);
@@ -66,5 +69,15 @@ void Renderer::renderSphere(const Shape& sphere)
    } else {
        program.setUniformValue("ourColor", sphere.getColor());
    }
-   glDrawElements(GL_TRIANGLES, 4000, GL_UNSIGNED_INT, 0);
+   glDrawElements(GL_TRIANGLES, 2400, GL_UNSIGNED_INT, 0);
+}
+
+void Renderer::drawGrid()
+{
+    QOpenGLVertexArrayObject::Binder vaoBinder(&vaoGrid);
+    QMatrix4x4 model;
+    model.translate({0.0,0.0,0.0});
+    program.setUniformValue("model", model);
+    program.setUniformValue("ourColor", QVector3D(1.0f, 1.0f, 1.0f));
+    glDrawElements(GL_LINES, 3200, GL_UNSIGNED_INT, 0);
 }

@@ -15,8 +15,8 @@ Scene::Scene(QWidget *parent)
 
 Scene::~Scene()
 {
-    vertexArrayObjectCube.destroy();
-    vertexArrayObjectPyramid.destroy();
+    vaoCube.destroy();
+    vaoPyramid.destroy();
     delete renderer;
 }
 
@@ -43,6 +43,7 @@ void Scene::initializeGL()
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
+    initializeGrid();
     initializeCube();
     initializePyramid();
     initializeSphere();
@@ -70,7 +71,7 @@ void Scene::paintGL()
     shaderManager.getProgram().setUniformValue("projection",projection);
     
     if(renderer == nullptr)
-        renderer = new Renderer(shaderManager.getProgram(),vertexArrayObjectCube,vertexArrayObjectPyramid,vertexArrayObjectSphere);
+        renderer = new Renderer(shaderManager.getProgram(),vaoGrid, vaoCube,vaoPyramid,vaoSphere);
     
     renderer->drawScene(shapes.getShapes());
 
@@ -111,8 +112,8 @@ void Scene::initializeCube()
         5, 7, 6
     };
 
-    vertexArrayObjectCube.create();
-    QOpenGLVertexArrayObject::Binder vaoBinder(&vertexArrayObjectCube);
+    vaoCube.create();
+    QOpenGLVertexArrayObject::Binder vaoBinder(&vaoCube);
 
     cubeBuffers.vertexBuffer.create();
     cubeBuffers.vertexBuffer.bind();
@@ -153,8 +154,8 @@ void Scene::initializePyramid()
        0.5f, -0.5f, -0.5f
     };
 
-    vertexArrayObjectPyramid.create();
-    QOpenGLVertexArrayObject::Binder vaoBinder(&vertexArrayObjectPyramid);
+    vaoPyramid.create();
+    QOpenGLVertexArrayObject::Binder vaoBinder(&vaoPyramid);
 
     pyramidBuffers.vertexBuffer.create();
     pyramidBuffers.vertexBuffer.bind();
@@ -167,26 +168,77 @@ void Scene::initializePyramid()
 
 }
 
+void Scene::initializeGrid(){
+    std::vector<float> gridVertices;
+    std::vector<unsigned int> gridIndices;
+    const int slices = 20;
+
+    for(int i = 0; i <= slices; ++i) {
+        float z = (float)i / (float)slices;
+        for(int j = 0; j <= slices; ++j) {
+            float x = (float)j / (float)slices;
+            float y = 0;
+            gridVertices.push_back(x);
+            gridVertices.push_back(y);
+            gridVertices.push_back(z);
+        }
+    }
+
+    for(int i = 0; i < slices; ++i) {
+        int row1 =  i * (slices+1);
+        int row2 = (i+1) * (slices+1);
+        for(int j = 0; j < slices; ++j) {
+            gridIndices.push_back(row1+j);
+            gridIndices.push_back(row1+j+1);
+            gridIndices.push_back(row1+j+1);
+            gridIndices.push_back(row2+j+1);
+
+            gridIndices.push_back(row2+j+1);
+            gridIndices.push_back(row2+j);
+            gridIndices.push_back(row2+j);
+            gridIndices.push_back(row1+j);
+        }
+    }
+
+    vaoGrid.create();
+    QOpenGLVertexArrayObject::Binder vaoBinder(&vaoGrid);
+    
+    gridBuffers.vertexBuffer.create();
+    gridBuffers.vertexBuffer.bind();
+    gridBuffers.vertexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    gridBuffers.vertexBuffer.allocate(gridVertices.data(), gridVertices.size() * sizeof(float));
+
+    qDebug() << "gridIdx " << gridIndices.size();
+    gridBuffers.indexBuffer.create();
+    gridBuffers.indexBuffer.bind();
+    gridBuffers.indexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    gridBuffers.indexBuffer.allocate(gridIndices.data(), gridIndices.size() * sizeof(unsigned int));
+
+    // Set vertex attribute pointers
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
+}
+
 void Scene::initializeSphere()
 {
     std::vector<float> sphereVertices;
-    std::vector<int> sphereIndices;
-    const int stacks = 20; 
-    const int slices = 20; 
-    const float radius = 0.2f;
+    std::vector<unsigned int> sphereIndices;
+    const int stacks = 20;
+    const int slices = 20;
+    const float radius = 0.5f;
 
     const float dTheta = -2 * M_PI / float(slices);
-    const float dPhi = -1 * M_PI / float(stacks);
+    const float dPhi = 2 * M_PI / float(stacks);
 
     for (int i = 0; i <= stacks; ++i)
     {
-        QMatrix4x4 rotMatrix;
-        rotMatrix.rotate(dPhi*float(i),QVector3D(0.0f,0.0f,1.0f));
-        QVector3D stackStartPoint = QVector3D(rotMatrix * QVector4D(0.0f,-radius,0.0f,1.0f));
-        for (int j = 0; j <= slices; ++j)
+         for (int j = 0; j <= slices; ++j)
         {
-            rotMatrix.rotate(dTheta * float(j),QVector3D(0.0f,1.0f,0.0f));
-            QVector3D pos = QVector3D(rotMatrix * QVector4D(stackStartPoint, 1.0f));
+            QVector3D pos;
+            pos[0] = radius* qCos(dTheta* i) * qCos(j*dPhi);
+            pos[1] = radius* qSin(dTheta* i);
+            pos[2] = radius* qCos(dTheta* i)* qSin(j*dPhi);
+
             sphereVertices.push_back(pos.x());
             sphereVertices.push_back(pos.y());
             sphereVertices.push_back(pos.z());
@@ -199,23 +251,24 @@ void Scene::initializeSphere()
 
         for (int j = 0; j < slices; ++j)
         {
-            sphereIndices.push_back(offset + i);
-            sphereIndices.push_back(offset + i + slices + 1);
-            sphereIndices.push_back(offset + i + 1 + slices + 1);
+            sphereIndices.push_back(offset + j); //k1 
+            sphereIndices.push_back(offset + j + slices + 1); //k2
+            sphereIndices.push_back(offset + j + 1); //k1 +1 
 
-            sphereIndices.push_back(offset + i);
-            sphereIndices.push_back(offset + i + 1 +slices + 1);
-            sphereIndices.push_back(offset + i + 1);
+            sphereIndices.push_back(offset + j + 1); //k1+1
+            sphereIndices.push_back(offset + j + slices + 1); //k2
+            sphereIndices.push_back(offset + j + slices + 2); //k2+1
         }
     }
 
-    // Initialize vertex buffer
+    vaoSphere.create();
+    QOpenGLVertexArrayObject::Binder vaoBinder(&vaoSphere);
+    
     sphereBuffers.vertexBuffer.create();
     sphereBuffers.vertexBuffer.bind();
     sphereBuffers.vertexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
     sphereBuffers.vertexBuffer.allocate(sphereVertices.data(), sphereVertices.size() * sizeof(float));
 
-    // Initialize index buffer
     qDebug() << "sphereIdx " << sphereIndices.size();
     sphereBuffers.indexBuffer.create();
     sphereBuffers.indexBuffer.bind();

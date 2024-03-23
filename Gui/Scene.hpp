@@ -38,6 +38,7 @@ protected:
 private:
     bool intersects(QVector3D rayOrigin, QVector3D rayDir ,const Shape& shape);
     
+    void initializeGrid();
     void initializeCube();
     void initializePyramid();
     void initializeSphere();
@@ -53,7 +54,7 @@ private:
     ShapeModel shapes; 
     ShaderManager shaderManager;
     Renderer* renderer;
-    Buffers cubeBuffers, pyramidBuffers, sphereBuffers;
-    QOpenGLVertexArrayObject vertexArrayObjectCube , vertexArrayObjectPyramid, vertexArrayObjectSphere;
+    Buffers gridBuffers , cubeBuffers, pyramidBuffers, sphereBuffers;
+    QOpenGLVertexArrayObject vaoGrid, vaoCube , vaoPyramid, vaoSphere;
 };
 #endif // SCENE_HPP

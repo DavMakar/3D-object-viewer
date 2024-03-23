@@ -18,9 +18,9 @@ QVariant ShapeModel::data(const QModelIndex &index, int role) const
         return QVariant();
 
     if (role == Qt::DisplayRole) {
-        return QString("%1 %2").arg(shapeAt(index.row()).type()).arg(index.row());
+        const auto& shape = shapeAt(index.row());
+        return QString("%1 %2").arg(shape.type()).arg(index.row());
     }
-    // Add more roles as needed
     return QVariant();
 }
 
@@ -34,6 +34,11 @@ void ShapeModel::addShape(const Shape& shape)
     beginInsertRows(QModelIndex(), rowCount(), rowCount());
     m_ShapeList.append(shape);
     endInsertRows();
+}
+
+void ShapeModel::removeShape(int index)
+{
+    m_ShapeList.removeAt(index);
 }
 
 const QList<Shape>& ShapeModel::getShapes() const

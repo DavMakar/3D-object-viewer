@@ -6,7 +6,7 @@ UIController::UIController(QWidget *parent)
     : QWidget(parent)
 {    
     shapeComboBox = new QComboBox(this);
-    shapeComboBox->addItems({"Cube", "Pyramid"});
+    shapeComboBox->addItems({"Cube","Pyramid","Sphere"});
 
     posXLineEdit = new QLineEdit(this);
     posXLineEdit->setPlaceholderText("Enter posX");

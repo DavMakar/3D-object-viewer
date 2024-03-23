@@ -40,7 +40,7 @@ void Scene::initializeGL()
 
     initializeCube();
     initializePyramid();
-   //initializeSphere();
+    initializeSphere();
     if(!shaderManager.loadAndCompileShaders(":/Shaders/vshader.vsh", ":/Shaders/fshader.fsh")){
         close();
     };
@@ -65,7 +65,7 @@ void Scene::paintGL()
     shaderManager.getProgram().setUniformValue("projection",projection);
     
     if(renderer == nullptr)
-        renderer = new Renderer(shaderManager.getProgram(),vertexArrayObjectCube,vertexArrayObjectPyramid);
+        renderer = new Renderer(shaderManager.getProgram(),vertexArrayObjectCube,vertexArrayObjectPyramid,vertexArrayObjectSphere);
     
     renderer->drawScene(shapes.getShapes());
 
@@ -165,53 +165,42 @@ void Scene::initializePyramid()
 void Scene::initializeSphere()
 {
     std::vector<float> sphereVertices;
-    std::vector<unsigned int> sphereIndices;
+    std::vector<int> sphereIndices;
     const int stacks = 20; 
     const int slices = 20; 
     const float radius = 0.2f;
 
+    const float dTheta = -2 * M_PI / float(slices);
+    const float dPhi = -1 * M_PI / float(stacks);
+
     for (int i = 0; i <= stacks; ++i)
     {
-        float phi = i * M_PI / stacks;
-        float sinPhi = sin(phi);
-        float cosPhi = cos(phi);
-
+        QMatrix4x4 rotMatrix;
+        rotMatrix.rotate(dPhi*float(i),QVector3D(0.0f,0.0f,1.0f));
+        QVector3D stackStartPoint = QVector3D(rotMatrix * QVector4D(0.0f,-radius,0.0f,1.0f));
         for (int j = 0; j <= slices; ++j)
         {
-            float theta = j * 2 * M_PI / slices;
-            float sinTheta = sin(theta);
-            float cosTheta = cos(theta);
-
-            float x = cosTheta * sinPhi;
-            float y = cosPhi;
-            float z = sinTheta * sinPhi;
-
-            sphereVertices.push_back(radius * x);
-            sphereVertices.push_back(radius * y);
-            sphereVertices.push_back(radius * z);
+            rotMatrix.rotate(dTheta * float(j),QVector3D(0.0f,1.0f,0.0f));
+            QVector3D pos = QVector3D(rotMatrix * QVector4D(stackStartPoint, 1.0f));
+            sphereVertices.push_back(pos.x());
+            sphereVertices.push_back(pos.y());
+            sphereVertices.push_back(pos.z());
         }
     }
 
     for (int i = 0; i < stacks; ++i)
     {
-        int k1 = i * (slices + 1);
-        int k2 = k1 + slices + 1;
+        const int offset = (slices + 1) * i;
 
-        for (int j = 0; j < slices; ++j, ++k1, ++k2)
+        for (int j = 0; j < slices; ++j)
         {
-            if (i != 0)
-            {
-                sphereIndices.push_back(k1);
-                sphereIndices.push_back(k2);
-                sphereIndices.push_back(k1 + 1);
-            }
+            sphereIndices.push_back(offset + i);
+            sphereIndices.push_back(offset + i + slices + 1);
+            sphereIndices.push_back(offset + i + 1 + slices + 1);
 
-            if (i != (stacks - 1))
-            {
-                sphereIndices.push_back(k1 + 1);
-                sphereIndices.push_back(k2);
-                sphereIndices.push_back(k2 + 1);
-            }
+            sphereIndices.push_back(offset + i);
+            sphereIndices.push_back(offset + i + 1 +slices + 1);
+            sphereIndices.push_back(offset + i + 1);
         }
     }
 
@@ -222,7 +211,7 @@ void Scene::initializeSphere()
     sphereBuffers.vertexBuffer.allocate(sphereVertices.data(), sphereVertices.size() * sizeof(float));
 
     // Initialize index buffer
-    //qDebug() << "sphereIdx " << sphereIndices.size();
+    qDebug() << "sphereIdx " << sphereIndices.size();
     sphereBuffers.indexBuffer.create();
     sphereBuffers.indexBuffer.bind();
     sphereBuffers.indexBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
@@ -239,7 +228,7 @@ void Scene::onAddShapeRequest(const QString& type,const QVector3D& pos,const QVe
 
 void Scene::mousePressEvent(QMouseEvent *event){
     auto rayWorld = mousePicker.raycast(event->pos(),width(),height());
-
+    
     qDebug() << "ray world " << rayWorld;
 
     auto cameraPos = camera.getPosition();
@@ -250,7 +239,7 @@ void Scene::mousePressEvent(QMouseEvent *event){
     }
 
     for(auto& shape : shapes){
-        if(intersects(cameraPos, rayWorld , shape)){
+        if(intersects(cameraPos, rayWorld, shape)){
             qDebug() << "selected";
             shape.setSelected(true);
         }
@@ -269,46 +258,23 @@ bool Scene::intersects(QVector3D rayOrigin, QVector3D rayDir, const Shape& shape
     rayOrigin = rayOrigin4D.toVector3D();
     rayDir = rayDir4D.toVector3D();
 
-    QVector3D invDir;
-    invDir.setX(qAbs(rayDir.x()) > 0.0f ? 1.0f / rayDir.x() : 0.0f);
-    invDir.setY(qAbs(rayDir.y()) > 0.0f ? 1.0f / rayDir.y() : 0.0f);
-    invDir.setZ(qAbs(rayDir.z()) > 0.0f ? 1.0f / rayDir.z() : 0.0f);
-
-    int sign[3];
-
-    sign[0] = (invDir.x() < 0.0f);
-    sign[1] = (invDir.y() < 0.0f);
-    sign[2] = (invDir.z() < 0.0f);
-
     QVector3D bounds[2];
     bounds[0] = QVector3D(-0.5f, -0.5f, -0.5f);
     bounds[1] = QVector3D(0.5f, 0.5f, 0.5f);
 
-    float tmin, tmax, tymin, tymax, tzmin, tzmax;
+    float txmin, txmax, tymin, tymax, tzmin, tzmax;
 
-    tmin = (bounds[sign[0]].x() - rayOrigin.x()) * invDir.x();
-    tmax = (bounds[1 - sign[0]].x() - rayOrigin.x()) * invDir.x();
-    tymin = (bounds[sign[1]].y() - rayOrigin.y()) * invDir.y();
-    tymax = (bounds[1 - sign[1]].y() - rayOrigin.y()) * invDir.y();
+    txmin = (bounds[0].x() - rayOrigin.x()) / rayDir.x();
+    txmax = (bounds[1].x() - rayOrigin.x()) / rayDir.x();
+    tymin = (bounds[0].y() - rayOrigin.y()) / rayDir.y();
+    tymax = (bounds[1].y() - rayOrigin.y()) / rayDir.y();
+    tzmin = (bounds[0].z() - rayOrigin.z()) / rayDir.z();
+    tzmax = (bounds[1].z() - rayOrigin.z()) / rayDir.z();
 
-    if ((tmin > tymax) || (tymin > tmax))
-        return 0;
-    if (tymin > tmin)
-        tmin = tymin;
-    if (tymax < tmax)
-        tmax = tymax;
+    float tMin = std::max(std::max(std::min(txmin, txmax), std::min(tymin, tymax)), std::min(tymin,tymax));
+    float tMax = std::min(std::min(std::max(txmin, txmax), std::max(tymin, tymax)), std::max(tymin, tymax));
 
-    tzmin = (bounds[sign[2]].z() - rayOrigin.z()) * invDir.z();
-    tzmax = (bounds[1 - sign[2]].z() - rayOrigin.z()) * invDir.z();
-
-    if ((tmin > tzmax) || (tzmin > tmax))
-        return 0;
-    if (tzmin > tmin)
-        tmin = tzmin;
-    if (tzmax < tmax)
-        tmax = tzmax;
-
-    return 1;
+    return tMax >= tMin && tMax >= 0;
 }
 
 void Scene::keyPressEvent(QKeyEvent *event){

@@ -10,6 +10,7 @@
 #include <QItemSelection>
 
 #include "../Data/ShapeSerializer.hpp"
+#include "ShapesListViewDelegate.hpp"
 #include "UIController.hpp"
 #include "Scene.hpp"
 
@@ -29,22 +30,26 @@ MainWindow::MainWindow(QWidget *parent)
 
     scene = new Scene;
 
-    cubeView = new QListView;
-    cubeView->setMaximumWidth(100);
-    cubeView->setModel(&scene->getModel());
+    shapesListView = new QListView;
+    shapesListView->setMaximumWidth(100);
+    shapesListView->setModel(&scene->getModel());
+    shapesListView->setMouseTracking(true);
+    ShapesListViewDelegate* delegate = new ShapesListViewDelegate(this);
+    shapesListView->setItemDelegate(delegate);
 
-    selectionModel = cubeView->selectionModel();
+    selectionModel = shapesListView->selectionModel();
 
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setMenuBar(createMenuBar());
     layout->addWidget(uiController);
     layout->addWidget(scene);
-    layout->addWidget(cubeView);
+    layout->addWidget(shapesListView);
 
     this->setLayout(layout);
 
     connect(uiController, &UIController::addShapeRequested, scene, &Scene::onAddShapeRequest);
     connect(selectionModel, &QItemSelectionModel::selectionChanged, this , &MainWindow::onSelectionChanged);
+    connect(delegate, &ShapesListViewDelegate::deleteButtonClicked, this, &MainWindow::onDeleteButtonClicked);
 }
 
 QMenuBar* MainWindow::createMenuBar(){
@@ -94,31 +99,11 @@ void MainWindow::onSelectionChanged(const QItemSelection &selected, const QItemS
     }
 }
 
+void MainWindow::onDeleteButtonClicked(const QModelIndex& index)
+{
+    scene->getModel().removeShape(index.row());
+    shapesListView->update();
+    shapesListView->selectionModel()->clearSelection();
+}
+
 MainWindow::~MainWindow() {}
-
-//bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
-//    if (event->type() == QEvent::MouseButtonPress) {
-//        qDebug() << "Mouse pressed!";
-//        currentWidget = dynamic_cast<QWidget*>(obj);
-//        installEventFilterOnWidgets(currentWidget);
-//    }
-//    return QWidget::eventFilter(obj, event);
-//}
-
-//void MainWindow::installEventFilterOnWidgets(QWidget* widget) {
-//    uninstallEventFilterOnWidgets(this);
-//    if (widget)
-//        widget->installEventFilter(this);
-//}
-
-//void MainWindow::uninstallEventFilterOnWidgets(QWidget* widget) {
-//    if (!widget)
-//        return;
-//    const QObjectList& children = widget->children();
-//    for (QObject* child : children) {
-//        if (QWidget* childWidget = qobject_cast<QWidget*>(child)) {
-//            childWidget->removeEventFilter(this);
-//            uninstallEventFilterOnWidgets(childWidget);
-//        }
-//    }
-//}

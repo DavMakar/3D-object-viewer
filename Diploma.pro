@@ -7,6 +7,7 @@ SOURCES += \
     Gui\MainWindow.cpp \
     Gui\Scene.cpp \
     Gui\UIController.cpp \
+    Gui\ShapesListViewDelegate.cpp \
     Data\Shape.cpp \
     Data\ShapeModel.cpp \
     Data\ShapeSerializer.cpp \
@@ -19,6 +20,7 @@ HEADERS += \
     Gui\MainWindow.hpp \
     Gui\Scene.hpp \
     Gui\UIController.hpp \
+    Gui\ShapesListViewDelegate.hpp \
     Data\Shape.hpp \
     Data\ShapeModel.hpp \
     Data\ShapeSerializer.hpp \

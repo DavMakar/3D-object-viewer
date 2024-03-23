@@ -14,8 +14,8 @@ public:
     QVariant data(const QModelIndex &index , int role) const override;
     const Shape& shapeAt(int index) const;
     void addShape(const Shape& shape); 
+    void removeShape(int index);
     const QList<Shape>& getShapes() const;
-
     void toggleShapeSelection(int index);
 
     bool isShapeSelected(int index) const;

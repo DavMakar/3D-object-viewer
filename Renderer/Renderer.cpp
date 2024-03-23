@@ -8,8 +8,9 @@
 
 Renderer::Renderer(QOpenGLShaderProgram &program,
   QOpenGLVertexArrayObject &cubeVAO,
-  QOpenGLVertexArrayObject &pyramidVAO)
-    :program(program) , cubeVAO(cubeVAO) , pyramidVAO(pyramidVAO)
+  QOpenGLVertexArrayObject &pyramidVAO,
+  QOpenGLVertexArrayObject &sphereVAO)
+    :program(program) , cubeVAO(cubeVAO) , pyramidVAO(pyramidVAO), sphereVAO(sphereVAO)
 {
     initializeOpenGLFunctions();
 }
@@ -17,15 +18,16 @@ Renderer::Renderer(QOpenGLShaderProgram &program,
 void Renderer::drawScene(const QList<Shape>& shapes)
 {
     for(const auto& shape : shapes){
-        QString type = shape.type();
+        auto type = shape.type();
         if(type == "Cube"){
             renderCube(shape);
-        }
-        else if (type == "Pyramid"){
+        }else if(type == "Pyramid"){
             renderPyramid(shape);
         }
+        else if(type == "Sphere"){
+            renderSphere(shape);
+        }
     }
-    // FIX    
 }
 
 void Renderer::renderCube(const Shape& cube)
@@ -53,16 +55,16 @@ void Renderer::renderPyramid(const Shape& pyramid)
     glDrawArrays(GL_TRIANGLES, 0, 18);
 }
 
-//void Renderer::renderSphere(const Shape& sphere)
-//{
-//    QOpenGLVertexArrayObject::Binder vaoBinder(&sphereVAO);
-//    QMatrix4x4 model;
-//    model.translate(sphere.getPosition());
-//    program.setUniformValue("model", model);
-//    if (sphere.isSelected()) {
-//        program.setUniformValue("ourColor", QVector3D(1.0f, 1.0f, 0.0f));
-//    } else {
-//        program.setUniformValue("ourColor", sphere.getColor());
-//    }
-//    glDrawElements(GL_TRIANGLES, 2280, GL_UNSIGNED_INT, 0);
-//}
+void Renderer::renderSphere(const Shape& sphere)
+{
+   QOpenGLVertexArrayObject::Binder vaoBinder(&sphereVAO);
+   QMatrix4x4 model;
+   model.translate(sphere.getPosition());
+   program.setUniformValue("model", model);
+   if (sphere.isSelected()) {
+       program.setUniformValue("ourColor", QVector3D(1.0f, 1.0f, 0.0f));
+   } else {
+       program.setUniformValue("ourColor", sphere.getColor());
+   }
+   glDrawElements(GL_TRIANGLES, 4000, GL_UNSIGNED_INT, 0);
+}

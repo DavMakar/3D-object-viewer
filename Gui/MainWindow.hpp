@@ -25,13 +25,13 @@ private slots:
     void onImportAction();
     void onExportAction(); //TODO
     void onSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
-
+    void onDeleteButtonClicked(const QModelIndex& index);
 private:
     QAction* importAction;
     QAction* exportAction;
 
     QItemSelectionModel* selectionModel;
-    QListView* cubeView;
+    QListView* shapesListView;
     UIController *uiController;
     Scene *scene;
 };

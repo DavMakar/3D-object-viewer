@@ -1,7 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QWidget>
+#include <QMainWindow>
 
 class QAction;
 class QListView;
@@ -11,7 +11,7 @@ class QMenuBar;
 class QItemSelectionModel;
 class QItemSelection;
 
-class MainWindow : public QWidget
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
@@ -20,16 +20,23 @@ public:
 
 private:
     QMenuBar* createMenuBar();
-
+    QToolBar* createToolBar();
+    
 private slots:
     void onImportAction();
     void onExportAction();
     void onSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
     void onDeleteButtonClicked(const QModelIndex& index);
+    void onToggleMoveMode(bool checked);
+    void onToggleSelectMode(bool checked);
+
 private:
     QAction* importAction;
     QAction* exportAction;
     QAction* clearAction;
+    
+    QAction* moveModeAction;
+    QAction* selectModeAction;
 
     QItemSelectionModel* selectionModel;
     QListView* shapesListView;

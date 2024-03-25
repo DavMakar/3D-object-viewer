@@ -30,6 +30,7 @@ HEADERS += \
     MousePicker\MousePicker.hpp
 
 RESOURCES += \
+    icon.qrc \
     shaders.qrc
 
 DISTFILES +=

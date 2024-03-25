@@ -8,6 +8,7 @@
 #include <QAction>
 #include <QItemSelectionModel>
 #include <QItemSelection>
+#include <QToolBar>
 
 #include "../Data/ShapeSerializer.hpp"
 #include "ShapesListViewDelegate.hpp"
@@ -15,15 +16,19 @@
 #include "Scene.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QWidget(parent)
+    : QMainWindow(parent)
 {
+    setWindowIcon(QIcon(":/Icon/logo1"));
     importAction = new QAction(tr("&Import objects"), this);
     importAction->setStatusTip(tr("load objects from json"));
     exportAction = new QAction(tr("&Export objects"),this);
     exportAction->setStatusTip(tr("export objects from json"));
     clearAction = new QAction(tr("&Clear Scene"), this);
     clearAction->setStatusTip(tr("remove all objects from scene"));
-    
+ 
+    setMenuBar(createMenuBar());
+    addToolBar(createToolBar());
+
     uiController = new UIController;
     uiController->setMaximumWidth(100);
 
@@ -38,13 +43,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     selectionModel = shapesListView->selectionModel();
 
-    QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->setMenuBar(createMenuBar());
+    QWidget *centralWidget = new QWidget(this);
+    QHBoxLayout *layout = new QHBoxLayout(centralWidget);
     layout->addWidget(uiController);
     layout->addWidget(scene);
     layout->addWidget(shapesListView);
-
-    this->setLayout(layout);
+    setCentralWidget(centralWidget);
 
     connect(importAction,&QAction::triggered, this, &MainWindow::onImportAction);
     connect(exportAction,&QAction::triggered, this, &MainWindow::onExportAction);
@@ -68,6 +72,24 @@ QMenuBar* MainWindow::createMenuBar(){
     exportMenu->addAction(exportAction);
     sceneMenu->addAction(clearAction);
     return menuBar;
+}
+
+QToolBar* MainWindow::createToolBar(){
+    QToolBar* toolBar = addToolBar(tr("Modes"));
+
+    moveModeAction = new QAction(QIcon(":/Icon/move.png"),tr("Move"), this);
+    moveModeAction->setCheckable(true);
+    moveModeAction->setChecked(true);
+    toolBar->addAction(moveModeAction);
+
+    selectModeAction = new QAction(QIcon(":/Icon/selection.png"),tr("Select"), this);
+    selectModeAction->setCheckable(true);
+    toolBar->addAction(selectModeAction);
+
+    connect(moveModeAction, &QAction::triggered, this, &MainWindow::onToggleMoveMode);    
+    connect(selectModeAction, &QAction::triggered, this, &MainWindow::onToggleSelectMode);
+
+    return toolBar;
 }
 
 void MainWindow::onImportAction(){
@@ -111,6 +133,26 @@ void MainWindow::onDeleteButtonClicked(const QModelIndex& index)
     scene->getModel().removeShape(index.row());
     shapesListView->update();
     shapesListView->selectionModel()->clearSelection();
+}
+
+void MainWindow::onToggleMoveMode(bool checked)
+{
+    if (checked) {
+        if (selectModeAction->isChecked()) {
+            selectModeAction->setChecked(false);
+        }
+        scene->setMode(Scene::Mode::MOVE);
+    }
+}
+
+void MainWindow::onToggleSelectMode(bool checked)
+{
+    if (checked) {
+        if (moveModeAction->isChecked()) {
+            moveModeAction->setChecked(false);
+        }
+        scene->setMode(Scene::Mode::SELECT);
+    }
 }
 
 MainWindow::~MainWindow() {}

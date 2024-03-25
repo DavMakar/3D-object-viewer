@@ -5,7 +5,8 @@ Camera::Camera()
     m_worldUp(0.0f,1.0f,0.0f),
     m_cameraFront(0.0f,0.0f,-1.0f),
     m_speed(1.0f),
-    m_zoom(45.0f), 
+    m_zoom(45.0f),
+    m_sensitivity(0.05f),
     m_pitch(-15.0f),
     m_yaw(-90.0f),
     m_fov(45.0f)
@@ -30,38 +31,35 @@ QVector3D Camera::getPosition() const
 }
 
 void Camera::updateCameraDirection(double dx,double dy){
-    m_yaw += dx;
-    m_pitch += dy;
+    m_yaw += dx * m_sensitivity;
+    m_pitch += dy * m_sensitivity;
 
-    if(m_pitch > 89.0f){
+    if(m_pitch >= 89.0f){
         m_pitch = 89.0f;
-    }else if(m_pitch < -89.0f){
+    }else if(m_pitch <= -89.0f){
         m_pitch = -89.0f;
     }
     updateCameraVectors();
 }
 
-void Camera::updateCameraPos(MoveDirection dir){
-    switch (dir)
-    {
-    case MoveDirection::FORWARD:
-        m_cameraPos += m_cameraFront * m_speed;
-        break;
-    case MoveDirection::BACKWARD:
-        m_cameraPos -= m_cameraFront * m_speed;
-        break;
-    case MoveDirection::RIGHT:
-        m_cameraPos += m_cameraRight * m_speed;
-        break;
-    case MoveDirection::LEFT:
-        m_cameraPos -= m_cameraRight * m_speed;
-        break;
-    case MoveDirection::UP:
-        m_cameraPos += m_cameraUp * m_speed/2;
-        break;
-    case MoveDirection::DOWN:
-        m_cameraPos -= m_cameraUp * m_speed/2;
-        break;
+void Camera::updateCameraPos(float deltaTime){
+    if(moveDirections.value(MoveDirection::FORWARD)){
+        m_cameraPos += m_cameraFront * m_speed * deltaTime;
+    }
+    if(moveDirections.value(MoveDirection::BACKWARD)){
+        m_cameraPos -= m_cameraFront * m_speed * deltaTime;
+    }
+    if(moveDirections.value(MoveDirection::RIGHT)){
+        m_cameraPos += m_cameraRight * m_speed * deltaTime;
+    }
+    if(moveDirections.value(MoveDirection::LEFT)){
+        m_cameraPos -= m_cameraRight * m_speed * deltaTime;
+    }
+    if(moveDirections.value(MoveDirection::UP)){
+        m_cameraPos += m_cameraUp * m_speed/2 * deltaTime;
+    }
+    if(moveDirections.value(MoveDirection::DOWN)){
+        m_cameraPos -= m_cameraUp * m_speed/2 * deltaTime;
     }
 }
 
@@ -96,4 +94,9 @@ void Camera::updateRotation(float angle)
 {
     m_pitch += angle;
     updateCameraVectors();
+}
+
+void Camera::move(MoveDirection dir, bool moving)
+{
+    moveDirections[dir] = moving;
 }

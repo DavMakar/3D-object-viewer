@@ -76,7 +76,8 @@ void Renderer::drawGrid()
 {
     QOpenGLVertexArrayObject::Binder vaoBinder(&vaoGrid);
     QMatrix4x4 model;
-    model.translate({0.0,0.0,0.0});
+    model.translate({-1.0f,0.0f,-1.0f});
+    model.scale({2.0f,2.0f,2.0f});
     program.setUniformValue("model", model);
     program.setUniformValue("ourColor", QVector3D(1.0f, 1.0f, 1.0f));
     glDrawElements(GL_LINES, 3200, GL_UNSIGNED_INT, 0);

@@ -7,6 +7,7 @@
 
 Scene::Scene(QWidget *parent)
     : QOpenGLWidget(parent)
+    , mode(Mode::MOVE)
     , mousePicker(camera)
     , renderer(nullptr)
 {
@@ -32,6 +33,11 @@ void Scene::onClearSceneAction()
     shapes.removeAllShapes();
 }
 
+void Scene::setMode(Mode mode)
+{
+    this->mode = mode;
+}
+
 ShapeModel &Scene::getModel()
 {
     return shapes;
@@ -50,6 +56,9 @@ void Scene::initializeGL()
     if(!shaderManager.loadAndCompileShaders(":/Shaders/vshader.vsh", ":/Shaders/fshader.fsh")){
         close();
     };
+
+    timer.start();
+    lastTime=(GLfloat)timer.elapsed()/1000;
 }
 
 void Scene::resizeGL(int w, int h)
@@ -64,6 +73,12 @@ void Scene::paintGL()
     shaderManager.getProgram().bind();
     // VAO bind;
     
+    float currTime=(float)timer.elapsed()/1000;
+    float deltaTime=currTime-lastTime;
+    lastTime=currTime;
+
+    camera.updateCameraPos(deltaTime);
+    camera.updateCameraDirection(getXoffset(),getYoffset());
     QMatrix4x4 view = camera.getView();
     QMatrix4x4 projection = camera.getProjection(width(), height());
     
@@ -280,28 +295,66 @@ void Scene::initializeSphere()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), nullptr);
 }
 
+int Scene::getXoffset()
+{
+    int tmp = xoffset;
+    xoffset = 0;
+    return tmp;
+}
+
+int Scene::getYoffset()
+{
+    int tmp = yoffset;
+    yoffset = 0;
+    return tmp;
+}
+
 void Scene::onAddShapeRequest(const QString& type,const QVector3D& pos,const QVector3D &color){
     shapes.addShape({type,pos,color});
 }
 
 void Scene::mousePressEvent(QMouseEvent *event){
-    auto rayWorld = mousePicker.raycast(event->pos(),width(),height());
-    
-    qDebug() << "ray world " << rayWorld;
+    if(mode == Mode::SELECT){
+        auto rayWorld = mousePicker.raycast(event->pos(),width(),height());
+        
+        qDebug() << "ray world " << rayWorld;
 
-    auto cameraPos = camera.getPosition();
-    qDebug() << "camera Pos " << cameraPos;
+        auto cameraPos = camera.getPosition();
+        qDebug() << "camera Pos " << cameraPos;
 
-    for(auto& shape : shapes){
-        shape.setSelected(false);
-    }
-
-    for(auto& shape : shapes){
-        if(intersects(cameraPos, rayWorld, shape)){
-            qDebug() << "selected";
-            shape.setSelected(true);
+        for(auto& shape : shapes){
+            shape.setSelected(false);
         }
+
+        for(auto& shape: shapes){
+            if(raySphere(cameraPos, rayWorld, shape.getPosition(), 0.5f)){
+                shape.setSelected(true);
+            }
+        }
+
+        // for(auto& shape : shapes){
+        //     if(intersects(cameraPos, rayWorld, shape)){
+        //         qDebug() << "selected";
+        //         shape.setSelected(true);
+        //     }
+        // }
     }
+}
+
+void Scene::mouseMoveEvent(QMouseEvent * event)
+{
+    if(mode == Mode::MOVE){
+        static QPointF lastPos = event->pos(); //TRY make member
+        QPointF currentPos = event->pos();
+
+        xoffset = currentPos.x() - lastPos.x();
+        yoffset = lastPos.y() - currentPos.y();
+
+        qDebug()<<"xoff = "<< xoffset << " yoff = " << yoffset;
+
+        lastPos = currentPos;
+    }
+    QWidget::mouseMoveEvent(event);
 }
 
 bool Scene::intersects(QVector3D rayOrigin, QVector3D rayDir, const Shape& shape) {
@@ -335,36 +388,86 @@ bool Scene::intersects(QVector3D rayOrigin, QVector3D rayDir, const Shape& shape
     return tMax >= tMin && tMax >= 0;
 }
 
+bool Scene::raySphere(QVector3D rayOrigin, QVector3D rayDir, QVector3D sphereCenterPos, float radius)
+{
+    QVector3D distToSphere = rayOrigin - sphereCenterPos; 
+    GLfloat b = QVector3D::dotProduct(rayDir, distToSphere);
+    GLfloat c = QVector3D::dotProduct(distToSphere,distToSphere) - radius * radius;
+    GLfloat bSquaredMinusC = b * b - c;
+    
+    if (bSquaredMinusC < 0.0f) {
+		return false;
+	}
+    else if(bSquaredMinusC == 0.0f){
+        GLfloat t = -b;
+        if(t < 0.0f){
+            return false;
+        }
+        return true;
+    }
+    else{
+        GLfloat t1 = -b + sqrt(bSquaredMinusC);
+		GLfloat t2 = -b - sqrt(bSquaredMinusC);
+        if(t1 < 0.0f && t2 < 0.0f){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+}
+
 void Scene::keyPressEvent(QKeyEvent *event){
     switch(event->key()){
         case Qt::Key_W:
-            camera.updateCameraPos(Camera::MoveDirection::FORWARD);
+            camera.move(Camera::MoveDirection::FORWARD,true);
             break; 
         case Qt::Key_S:
-            camera.updateCameraPos(Camera::MoveDirection::BACKWARD);
+            camera.move(Camera::MoveDirection::BACKWARD,true);
             break;
         case Qt::Key_A:
-            camera.updateCameraPos(Camera::MoveDirection::LEFT);
+            camera.move(Camera::MoveDirection::LEFT,true);
             break;
         case Qt::Key_D:
-            camera.updateCameraPos(Camera::MoveDirection::RIGHT);
+            camera.move(Camera::MoveDirection::RIGHT,true);
             break;
         case Qt::Key_Up:
-            camera.updateCameraPos(Camera::MoveDirection::UP);
+            camera.move(Camera::MoveDirection::UP,true);
             break;
         case Qt::Key_Down:
-            camera.updateCameraPos(Camera::MoveDirection::DOWN);
-            break;
-        case Qt::Key_E:
-            camera.updateRotation(5.0f);
-            break;
-        case Qt::Key_Q:
-            camera.updateRotation(-5.0f);
+            camera.move(Camera::MoveDirection::DOWN,true);
             break;
         default:
             break;
     }
     QWidget::keyPressEvent(event);
+}
+
+void Scene::keyReleaseEvent(QKeyEvent *event)
+{
+    switch(event->key()){
+        case Qt::Key_W:
+            camera.move(Camera::MoveDirection::FORWARD,false);
+            break; 
+        case Qt::Key_S:
+            camera.move(Camera::MoveDirection::BACKWARD,false);
+            break;
+        case Qt::Key_A:
+            camera.move(Camera::MoveDirection::LEFT,false);
+            break;
+        case Qt::Key_D:
+            camera.move(Camera::MoveDirection::RIGHT,false);
+            break;
+        case Qt::Key_Up:
+            camera.move(Camera::MoveDirection::UP,false);
+            break;
+        case Qt::Key_Down:
+            camera.move(Camera::MoveDirection::DOWN,false);
+            break;
+        default:
+            break;
+    }
+    QWidget::keyReleaseEvent(event);
 }
 
 // void Scene::computeRay(const QPoint& mousePos, QVector3D& rayOrigin , QVector3D& rayDirection){
